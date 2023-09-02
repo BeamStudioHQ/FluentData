@@ -13,9 +13,9 @@ public class FluentDataContext {
     /// ```swift
     /// Planet(name: "Earth").create(on: context.database)
     /// ```
-    public lazy var database: any Database = {
+    public var database: any Database {
         databases.database(.sqlite, logger: logger, on: eventLoopGroup.next())!
-    }()
+    }
     
     private let databases: Databases
     private let eventLoopGroup: EventLoopGroup
@@ -49,7 +49,11 @@ public class FluentDataContext {
         // Register the context
         FluentDataContexts[contextKey, makeDefault] = self
     }
-    
+
+    public func use(middleware: AnyModelMiddleware) {
+        databases.middleware.use(middleware, on: .sqlite)
+    }
+
     internal func deregister<Model: FluentKit.Model>(_ fluentQuery: FluentQuery<Model>) {
         registeredQueries.removeValue(forKey: fluentQuery.queryId)
     }
