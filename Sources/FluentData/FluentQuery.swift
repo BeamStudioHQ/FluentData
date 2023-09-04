@@ -10,7 +10,7 @@ public class FluentQuery<Model: FluentKit.Model> {
     internal let subject = CurrentValueSubject<[Model], Never>([])
     public var publisher: AnyPublisher<[Model], Never> { subject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
     
-    private init(
+    public init(
         context: FluentDataContext,
         queryBuilder: @escaping (QueryBuilder<Model>) -> QueryBuilder<Model>
     ) {
