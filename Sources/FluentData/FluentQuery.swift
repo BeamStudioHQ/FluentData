@@ -12,7 +12,7 @@ public class FluentQuery<Model: FluentKit.Model> {
     
     public init(
         context: FluentDataContext,
-        queryBuilder: @escaping (QueryBuilder<Model>) -> QueryBuilder<Model>
+        queryBuilder: @escaping (QueryBuilder<Model>) -> QueryBuilder<Model> = { $0 }
     ) {
         self.context = context
         self.queryBuilder = queryBuilder

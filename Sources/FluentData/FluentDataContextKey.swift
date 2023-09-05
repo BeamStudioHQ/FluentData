@@ -1,12 +1,17 @@
+import Foundation
+
 /// Supported storage mediums for a context
 ///
 /// ``memory`` won't persist data across two launches of your app. This can be quite useful during the development process.
 ///
 /// ``file(_:)`` on the other hand, will persist data on disk using the SQLite format.
+///
+/// ``bundle(_:name:)`` provide a read-only database using the SQLite format from a bundle file.
 /// The file will be located in the "Application Support" folder of the currently running application.
 public enum FluentDataPersistence {
     case memory
     case file(_ name: String)
+    case bundle(_ bundle: Bundle, name: String)
 }
 
 /// An unique identifier for a database context

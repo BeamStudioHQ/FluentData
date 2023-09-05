@@ -169,6 +169,19 @@ fileprivate extension FluentDataContextKey {
             let urlSafePersistenceName = name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines))!
             let filePath = folder.appendingPathComponent("\(urlSafePersistenceName).sqlite")
             return .sqlite(.file(filePath.absoluteString))
+        case .bundle(let bundle, let name):
+            if let path = bundle.url(forResource: name, withExtension: "sqlite") {
+                let folder = FileManager.default.temporaryDirectory
+                let tempPath = folder.appendingPathComponent("\(UUID().uuidString).sqlite")
+                do {
+                    try FileManager.default.copyItem(at: path, to: tempPath)
+                    return .sqlite(.file(tempPath.absoluteString))
+                } catch {
+                    fatalError("Unable to copy bundled database \(tempPath) from bundle \(path) to temporary directory.")
+                }
+            } else {
+                fatalError("Database \(name).sqlite not found in \(bundle.bundlePath).")
+            }
         }
     }
 }
