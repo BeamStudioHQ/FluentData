@@ -28,26 +28,101 @@ public class FluentDataContext {
     ///   - contextKey: the key which uniquely identify this context
     ///   - makeDefault: if `true`, register this context as the default one. If `nil`, registers this context as the default one only if there is no default context yet
     public init<K: FluentDataContextKey>(contextKey: K.Type, makeDefault: Bool? = nil) {
-        eventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)
-        threadPool = NIOThreadPool(numberOfThreads: 1)
+        let eventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)
+        let threadPool = NIOThreadPool(numberOfThreads: 1)
         threadPool.start()
-        
-        databases = Databases(threadPool: threadPool, on: eventLoopGroup)
-        databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
-        logger = Logger(label: DatabaseID.sqlite.string, factory: {
-            OSLogLogHandler(os.Logger(subsystem: "FluentData", category: $0))
+
+        let logger = Logger(label: DatabaseID.sqlite.string, factory: {
+            OSLogLogHandler(os.Logger(subsystem: "FluentData", category: $0), logLevel: contextKey.logQueries ? .debug : .info)
         })
-        
-        let migrations = Migrations()
-        contextKey.migrations.forEach { migrations.add($0) }
-        let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoopGroup.next())
-        try! migrator.setupIfNeeded().wait()
-        try! migrator.prepareBatch().wait()
-        
+
+        databases = Self.initDatabases(contextKey: contextKey, eventLoopGroup: eventLoopGroup, threadPool: threadPool, logger: logger)
+
+        self.logger = logger
+        self.eventLoopGroup = eventLoopGroup
+        self.threadPool = threadPool
+
         databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
         
         // Register the context
         FluentDataContexts[contextKey, makeDefault] = self
+    }
+
+    private static func initDatabases<K: FluentDataContextKey>(contextKey: K.Type, eventLoopGroup: EventLoopGroup, threadPool: NIOThreadPool, logger: Logger) -> Databases {
+        guard false == contextKey.shouldMigrate else {
+            let databases = Databases(threadPool: threadPool, on: eventLoopGroup)
+            databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
+            return databases
+        }
+
+        do {
+            return try createAndMigrateDatabases()
+        } catch let migrationError {
+            return tryRecoverMigrationError(migrationError)
+        }
+
+        func createAndMigrateDatabases() throws -> Databases {
+            let databases = Databases(threadPool: threadPool, on: eventLoopGroup)
+            databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
+
+            do {
+                try migrate(migrations: contextKey.migrations, filePath: contextKey.removableFilePath, databases: databases, eventLoopGroup: eventLoopGroup, logger: logger)
+            } catch {
+                databases.shutdown()
+                throw error
+            }
+
+            return databases
+        }
+
+        func migrate(migrations migrationList: [Migration], filePath: URL?, databases: Databases, eventLoopGroup: EventLoopGroup, logger: Logger) throws {
+            let migrations = Migrations()
+            migrationList.forEach { migrations.add($0) }
+
+            let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoopGroup.next())
+            try migrator.setupIfNeeded().wait()
+            try migrator.prepareBatch().wait()
+        }
+
+        func removeFile(migrationError: Error) {
+            guard let filePath = contextKey.removableFilePath else {
+                fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
+            }
+
+            do {
+                try FileManager.default.removeItem(at: filePath)
+            } catch let fileManagerError {
+                fatalError("Unable to start fresh: \(fileManagerError)\nMigrations failed with error: \(migrationError)")
+            }
+        }
+
+        func tryRecoverMigrationError(_ migrationError: Error) -> Databases {
+            switch contextKey.migrationFailurePolicy {
+            case .startFresh:
+                removeFile(migrationError: migrationError)
+                do {
+                    return try createAndMigrateDatabases()
+                } catch let error {
+                    fatalError("Migrations failed with error (will start fresh and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)")
+                }
+
+            case .abort:
+                fatalError("Migrations failed with error: \(migrationError)")
+
+            case .backupAndStartFresh(let backupHandler):
+                guard let filePath = contextKey.removableFilePath else {
+                    fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
+                }
+                backupHandler(filePath)
+
+                removeFile(migrationError: migrationError)
+                do {
+                    return try createAndMigrateDatabases()
+                } catch let error {
+                    fatalError("Migrations failed with error (will backup and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)")
+                }
+            }
+        }
     }
 
     public func use(middleware: AnyModelMiddleware) {
@@ -164,24 +239,55 @@ fileprivate extension FluentDataContextKey {
         switch Self.persistence {
         case .memory:
             return .sqlite(.memory)
+        case .file:
+            let filePath = Self.filePath!
+            return .sqlite(.file(filePath.absoluteString))
+        case .bundle:
+            let filePath = Self.filePath!
+            let folder = FileManager.default.temporaryDirectory
+            let tempPath = folder.appendingPathComponent("\(UUID().uuidString).sqlite")
+            do {
+                try FileManager.default.copyItem(at: filePath, to: tempPath)
+                return .sqlite(.file(tempPath.absoluteString))
+            } catch {
+                fatalError("Unable to copy bundled database \(tempPath) from bundle \(filePath) to temporary directory.")
+            }
+        }
+    }
+
+    static var filePath: URL? {
+        switch Self.persistence {
+        case .memory:
+            return nil
         case .file(let name):
             let folder = try! FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             let urlSafePersistenceName = name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines))!
             let filePath = folder.appendingPathComponent("\(urlSafePersistenceName).sqlite")
-            return .sqlite(.file(filePath.absoluteString))
+            return filePath
         case .bundle(let bundle, let name):
             if let path = bundle.url(forResource: name, withExtension: "sqlite") {
-                let folder = FileManager.default.temporaryDirectory
-                let tempPath = folder.appendingPathComponent("\(UUID().uuidString).sqlite")
-                do {
-                    try FileManager.default.copyItem(at: path, to: tempPath)
-                    return .sqlite(.file(tempPath.absoluteString))
-                } catch {
-                    fatalError("Unable to copy bundled database \(tempPath) from bundle \(path) to temporary directory.")
-                }
+                return path
             } else {
                 fatalError("Database \(name).sqlite not found in \(bundle.bundlePath).")
             }
+        }
+    }
+
+    static var removableFilePath: URL? {
+        switch Self.persistence {
+        case .file:
+            return filePath
+        case .memory, .bundle:
+            return nil
+        }
+    }
+
+    static var shouldMigrate: Bool {
+        switch Self.persistence {
+        case .memory, .file:
+            return true
+        case .bundle:
+            return false
         }
     }
 }

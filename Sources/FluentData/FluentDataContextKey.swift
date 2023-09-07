@@ -14,8 +14,17 @@ public enum FluentDataPersistence {
     case bundle(_ bundle: Bundle, name: String)
 }
 
+public enum MigrationFailurePolicy {
+    case startFresh
+    case abort
+    case backupAndStartFresh(backupHandler: (URL) -> Void)
+}
+
 /// An unique identifier for a database context
 public protocol FluentDataContextKey {
+    static var logQueries: Bool { get }
+
+    static var migrationFailurePolicy: MigrationFailurePolicy { get }
     /// The list of migrations to apply
     ///
     /// Migrations allows your data model to evolve with your app. Migrations are automatically applied in order when the database context is created.
@@ -27,4 +36,22 @@ public protocol FluentDataContextKey {
     
     /// Specify how the data must be persisted for this context
     static var persistence: FluentDataPersistence { get }
+}
+
+public extension FluentDataContextKey {
+    static var logQueries: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    static var migrationFailurePolicy: MigrationFailurePolicy {
+        return .abort
+    }
+
+    static var migrations: [Migration] {
+        return []
+    }
 }
