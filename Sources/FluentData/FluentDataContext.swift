@@ -216,21 +216,25 @@ fileprivate struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
 
 fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistration {
     let queryBuilder: QueryBuilder<Model>
-    let subject: CurrentValueSubject<[Model], Never>
-    
+    let subject: CurrentValueSubject<[Model], Error>
+
     init(
         queryBuilder: QueryBuilder<Model>,
-        subject: CurrentValueSubject<[Model], Never>
+        subject: CurrentValueSubject<[Model], Error>
     ) {
         self.queryBuilder = queryBuilder
         self.subject = subject
     }
     
     func update() {
-        queryBuilder.all()
-            .whenSuccess {
-                subject.send($0)
+        queryBuilder.all().whenComplete { result in
+            switch result {
+            case .success(let model):
+                subject.send(model)
+            case .failure(let error):
+                subject.send(completion: .failure(error))
             }
+        }
     }
 }
 

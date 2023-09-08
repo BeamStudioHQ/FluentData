@@ -7,9 +7,9 @@ public class FluentQuery<Model: FluentKit.Model> {
     private let context: FluentDataContext
     internal let queryBuilder: (QueryBuilder<Model>) -> QueryBuilder<Model>
     internal let queryId: UUID
-    internal let subject = CurrentValueSubject<[Model], Never>([])
-    public var publisher: AnyPublisher<[Model], Never> { subject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
-    
+    internal let subject = CurrentValueSubject<[Model], Error>([])
+    public var publisher: AnyPublisher<[Model], Error> { subject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
+
     public init(
         context: FluentDataContext,
         queryBuilder: @escaping (QueryBuilder<Model>) -> QueryBuilder<Model> = { $0 }
