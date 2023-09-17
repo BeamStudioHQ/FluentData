@@ -140,48 +140,58 @@ public class FluentDataContext {
         
         let registration = QueryRegistration<Model>(queryBuilder: queryBuilder, subject: fluentQuery.subject)
         registeredQueries.updateValue(registration, forKey: fluentQuery.queryId)
-        refreshAllQueries()
+        Task(priority: .background) {
+            await registration.update()
+        }
     }
 }
 
 extension FluentDataContext: DatabaseStateTracker {
-    private func refreshAllQueries() {
-        registeredQueries.values.forEach { registration in
-            registration.update()
+    private func refreshAllQueriesFor(schema: String, space: String?) async {
+        for registration in registeredQueries.values {
+            if registration.shouldUpdateFor(schema: schema, space: space) {
+                await registration.update()
+            }
         }
     }
     
-    func onCreate(_ model: FluentKit.AnyModel, on db: FluentKit.Database) {
-        refreshAllQueries()
+    func onCreate(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
+        let modelType = type(of: model)
+        await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
     
-    func onDelete(_ model: FluentKit.AnyModel, force: Bool, on db: FluentKit.Database) {
-        refreshAllQueries()
+    func onDelete(_ model: FluentKit.AnyModel, force: Bool, on db: FluentKit.Database) async {
+        let modelType = type(of: model)
+        await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
     
-    func onSoftDelete(_ model: FluentKit.AnyModel, on db: FluentKit.Database) {
-        refreshAllQueries()
+    func onSoftDelete(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
+        let modelType = type(of: model)
+        await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
     
-    func onRestore(_ model: FluentKit.AnyModel, on db: FluentKit.Database) {
-        refreshAllQueries()
+    func onRestore(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
+        let modelType = type(of: model)
+        await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
     
-    func onUpdate(_ model: FluentKit.AnyModel, on db: FluentKit.Database) {
-        refreshAllQueries()
+    func onUpdate(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
+        let modelType = type(of: model)
+        await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
 }
 
 fileprivate protocol AnyQueryRegistration {
-    func update()
+    func shouldUpdateFor(schema: String, space: String?) -> Bool
+    func update() async
 }
 
 fileprivate protocol DatabaseStateTracker: AnyObject {
-    func onCreate(_ model: AnyModel, on db: Database)
-    func onDelete(_ model: AnyModel, force: Bool, on db: Database)
-    func onSoftDelete(_ model: AnyModel, on db: Database)
-    func onRestore(_ model: AnyModel, on db: Database)
-    func onUpdate(_ model: AnyModel, on db: Database)
+    func onCreate(_ model: AnyModel, on db: Database) async
+    func onDelete(_ model: AnyModel, force: Bool, on db: Database) async
+    func onSoftDelete(_ model: AnyModel, on db: Database) async
+    func onRestore(_ model: AnyModel, on db: Database) async
+    func onUpdate(_ model: AnyModel, on db: Database) async
 }
 
 fileprivate struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
@@ -197,21 +207,25 @@ fileprivate struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
         }
         
         return next.handle(event, model, on: db)
-            .map {
-                switch event {
-                case .create:
-                    tracker.onCreate(model, on: db)
-                case .delete(let force):
-                    tracker.onDelete(model, force: force, on: db)
-                case .restore:
-                    tracker.onRestore(model, on: db)
-                case .softDelete:
-                    tracker.onSoftDelete(model, on: db)
-                case .update:
-                    tracker.onUpdate(model, on: db)
+            .flatMap { result in
+                let promise = db.eventLoop.makePromise(of: Void.self)
+                
+                promise.completeWithTask {
+                    switch event {
+                    case .create:
+                        await tracker.onCreate(model, on: db)
+                    case .delete(let force):
+                        await tracker.onDelete(model, force: force, on: db)
+                    case .restore:
+                        await tracker.onRestore(model, on: db)
+                    case .softDelete:
+                        await tracker.onSoftDelete(model, on: db)
+                    case .update:
+                        await tracker.onUpdate(model, on: db)
+                    }
                 }
                 
-                return $0
+                return promise.futureResult.map { result }
             }
     }
 }
@@ -228,14 +242,52 @@ fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistrati
         self.subject = subject
     }
     
-    func update() {
-        queryBuilder.all().whenComplete { result in
-            switch result {
-            case .success(let model):
-                subject.send(model)
-            case .failure(let error):
-                subject.send(completion: .failure(error))
+    func shouldUpdateFor(schema: String, space: String?) -> Bool {
+        // If the queried table matches the given schema and space, an update is required
+        if self.queryBuilder.query.schema == schema, self.queryBuilder.query.space == space {
+            return true
+        }
+        
+        // We also need to check if there is any eager loaders for a matching model
+        if queryBuilder.eagerLoaders.isEmpty == false {
+            // TODO(FD-8): Improve detection of eager loaded models
+            // As of now, we don't have access to the EagerLoader concrete classes of the Fluent module.
+            // Because of that, we don't know which model is eager loaded, thus limiting the way we can optimize this
+            return true
+        }
+        
+        // If not, we check here if there is a join on a table matching the given schema and space
+        for join in self.queryBuilder.query.joins {
+            switch join {
+            case .join(let joinedSchema, _, _, _, _):
+                if joinedSchema == schema, self.queryBuilder.query.space == space {
+                    return true
+                }
+                
+            case .extendedJoin(let joinedSchema, let joinedSpace, _, _, _, _):
+                if joinedSchema == schema, joinedSpace == space {
+                    return true
+                }
+                
+            case .advancedJoin(let joinedSchema, let joinedSpace, _, _, _):
+                if joinedSchema == schema, joinedSpace == space {
+                    return true
+                }
+                
+            case .custom(_):
+                return false
             }
+        }
+        
+        // If we don't find a match, it means the query doesn't need to be updated
+        return false
+    }
+    
+    func update() async {
+        do {
+            subject.send(try await queryBuilder.all())
+        } catch {
+            subject.send(completion: .failure(error))
         }
     }
 }
