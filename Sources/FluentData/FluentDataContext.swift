@@ -49,7 +49,7 @@ public class FluentDataContext {
     }
 
     private static func initDatabases<K: FluentDataContextKey>(contextKey: K.Type, eventLoopGroup: EventLoopGroup, threadPool: NIOThreadPool, logger: Logger) -> Databases {
-        guard false == contextKey.shouldMigrate else {
+        guard contextKey.shouldMigrate else {
             let databases = Databases(threadPool: threadPool, on: eventLoopGroup)
             databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
             return databases
@@ -101,6 +101,7 @@ public class FluentDataContext {
             case .startFresh:
                 removeFile(migrationError: migrationError)
                 do {
+                    logger.notice("Unable to migrate, trying to start fresh")
                     return try createAndMigrateDatabases()
                 } catch let error {
                     fatalError("Migrations failed with error (will start fresh and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)")
@@ -113,6 +114,7 @@ public class FluentDataContext {
                 guard let filePath = contextKey.removableFilePath else {
                     fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
                 }
+                logger.notice("Unable to migrate, running backup handler and trying to start fresh")
                 backupHandler(filePath)
 
                 removeFile(migrationError: migrationError)
