@@ -41,8 +41,12 @@ public class FluentDataContext {
         self.logger = logger
         self.eventLoopGroup = eventLoopGroup
         self.threadPool = threadPool
-
-        databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
+        
+        if case .bundle = contextKey.persistence {
+            databases.middleware.use(ReadOnlyMiddleware(), on: .sqlite)
+        } else {
+            databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
+        }
         
         // Register the context
         FluentDataContexts[contextKey, makeDefault] = self
@@ -192,6 +196,16 @@ fileprivate protocol DatabaseStateTracker: AnyObject {
     func onSoftDelete(_ model: AnyModel, on db: Database) async
     func onRestore(_ model: AnyModel, on db: Database) async
     func onUpdate(_ model: AnyModel, on db: Database) async
+}
+
+public enum ReadOnlyDatabaseError: Error {
+    case invalidOperation
+}
+
+fileprivate struct ReadOnlyMiddleware: AnyModelMiddleware {
+    func handle(_ event: FluentKit.ModelEvent, _ model: FluentKit.AnyModel, on db: FluentKit.Database, chainingTo next: FluentKit.AnyModelResponder) -> NIOCore.EventLoopFuture<Void> {
+        return db.eventLoop.makeFailedFuture(ReadOnlyDatabaseError.invalidOperation)
+    }
 }
 
 fileprivate struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
