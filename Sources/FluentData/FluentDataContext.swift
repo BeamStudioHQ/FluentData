@@ -244,7 +244,7 @@ fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistrati
     
     func shouldUpdateFor(schema: String, space: String?) -> Bool {
         // If the queried table matches the given schema and space, an update is required
-        if self.queryBuilder.query.schema == schema, self.queryBuilder.query.space == space {
+        if queryBuilder.query.schema == schema, queryBuilder.query.space == space {
             return true
         }
         
@@ -257,7 +257,7 @@ fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistrati
         }
         
         // If not, we check here if there is a join on a table matching the given schema and space
-        for join in self.queryBuilder.query.joins {
+        for join in queryBuilder.query.joins {
             switch join {
             case .join(let joinedSchema, _, _, _, _):
                 if joinedSchema == schema, self.queryBuilder.query.space == space {
@@ -274,7 +274,7 @@ fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistrati
                     return true
                 }
                 
-            case .custom(_):
+            case .custom:
                 return false
             }
         }
