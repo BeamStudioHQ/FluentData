@@ -44,8 +44,9 @@ public class FluentDataContext {
         
         if case .bundle = contextKey.persistence {
             databases.middleware.use(ReadOnlyMiddleware(), on: .sqlite)
+        } else {
+            databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
         }
-        databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
         
         // Register the context
         FluentDataContexts[contextKey, makeDefault] = self
