@@ -8,7 +8,16 @@ public class FluentQuery<Model: FluentKit.Model> {
     internal let queryBuilder: (QueryBuilder<Model>) -> QueryBuilder<Model>
     internal let queryId: UUID
     internal let subject = CurrentValueSubject<[Model], Error>([])
-    public var publisher: AnyPublisher<[Model], Error> { subject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
+    public var publisher: AnyPublisher<[Model], Error> {
+        subject
+            .receive(on: DispatchQueue.main)
+            .map { [self] model in
+                // Explicitly retaining self to make sure the query doesn't deregister as long as its published is retained
+                _ = self
+                return model
+            }
+            .eraseToAnyPublisher()
+    }
 
     public init(
         context: FluentDataContext,
