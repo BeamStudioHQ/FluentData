@@ -27,7 +27,7 @@ public class FluentDataContext {
     /// - Parameters:
     ///   - contextKey: the key which uniquely identify this context
     ///   - makeDefault: if `true`, register this context as the default one. If `nil`, registers this context as the default one only if there is no default context yet
-    public init<K: FluentDataContextKey>(contextKey: K.Type, makeDefault: Bool? = nil) {
+    public init<K: FluentDataContextKey>(contextKey: K.Type, middlewares: [AnyModelMiddleware] = [], makeDefault: Bool? = nil) {
         let eventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)
         let threadPool = NIOThreadPool(numberOfThreads: 1)
         threadPool.start()
@@ -44,7 +44,9 @@ public class FluentDataContext {
         
         if case .bundle = contextKey.persistence {
             databases.middleware.use(ReadOnlyMiddleware(), on: .sqlite)
+            middlewares.forEach { databases.middleware.use($0, on: .sqlite) }
         } else {
+            middlewares.forEach { databases.middleware.use($0, on: .sqlite) }
             databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
         }
         
@@ -129,10 +131,6 @@ public class FluentDataContext {
                 }
             }
         }
-    }
-
-    public func use(middleware: AnyModelMiddleware) {
-        databases.middleware.use(middleware, on: .sqlite)
     }
 
     internal func deregister<Model: FluentKit.Model>(_ fluentQuery: FluentQuery<Model>) {
