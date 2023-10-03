@@ -196,10 +196,6 @@ fileprivate protocol DatabaseStateTracker: AnyObject {
     func onUpdate(_ model: AnyModel, on db: Database) async
 }
 
-public enum ReadOnlyDatabaseError: Error {
-    case invalidOperation
-}
-
 fileprivate struct ReadOnlyMiddleware: AnyModelMiddleware {
     func handle(_ event: FluentKit.ModelEvent, _ model: FluentKit.AnyModel, on db: FluentKit.Database, chainingTo next: FluentKit.AnyModelResponder) -> NIOCore.EventLoopFuture<Void> {
         return db.eventLoop.makeFailedFuture(ReadOnlyDatabaseError.invalidOperation)
