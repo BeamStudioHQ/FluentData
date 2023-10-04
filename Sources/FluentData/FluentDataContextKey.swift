@@ -7,7 +7,7 @@ public protocol FluentDataContextKey {
 
     /// Specify FluentData's behaviour if one of the migrations fail. Defaults to ``MigrationFailurePolicy/abort``.
     static var migrationFailurePolicy: MigrationFailurePolicy { get }
-    
+
     /// The list of migrations to apply
     ///
     /// Migrations allows your data model to evolve with your app. Migrations are automatically applied in order when the database context is created.
@@ -16,7 +16,7 @@ public protocol FluentDataContextKey {
     ///
     /// For more information about the migration system of Fluent, see [Fluent's migration documentation](https://docs.vapor.codes/fluent/migration/)
     static var migrations: [Migration] { get }
-    
+
     /// Specify how the data must be persisted for this context
     static var persistence: FluentDataPersistence { get }
 }
