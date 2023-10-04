@@ -214,31 +214,29 @@ fileprivate struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
     }
     
     func handle(_ event: FluentKit.ModelEvent, _ model: FluentKit.AnyModel, on db: FluentKit.Database, chainingTo next: FluentKit.AnyModelResponder) -> NIOCore.EventLoopFuture<Void> {
-        guard let tracker else {
-            return next.handle(event, model, on: db)
-        }
+        let nextFuture = next.handle(event, model, on: db)
         
-        return next.handle(event, model, on: db)
-            .flatMap { result in
-                let promise = db.eventLoop.makePromise(of: Void.self)
-                
-                promise.completeWithTask {
-                    switch event {
-                    case .create:
-                        await tracker.onCreate(model, on: db)
-                    case .delete(let force):
-                        await tracker.onDelete(model, force: force, on: db)
-                    case .restore:
-                        await tracker.onRestore(model, on: db)
-                    case .softDelete:
-                        await tracker.onSoftDelete(model, on: db)
-                    case .update:
-                        await tracker.onUpdate(model, on: db)
+        if let tracker {
+            nextFuture
+                .whenSuccess { result in
+                    Task {
+                        switch event {
+                        case .create:
+                            await tracker.onCreate(model, on: db)
+                        case .delete(let force):
+                            await tracker.onDelete(model, force: force, on: db)
+                        case .restore:
+                            await tracker.onRestore(model, on: db)
+                        case .softDelete:
+                            await tracker.onSoftDelete(model, on: db)
+                        case .update:
+                            await tracker.onUpdate(model, on: db)
+                        }
                     }
                 }
-                
-                return promise.futureResult.map { result }
-            }
+        }
+        
+        return nextFuture
     }
 }
 
@@ -297,7 +295,8 @@ fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistrati
     
     func update() async {
         do {
-            subject.send(try await queryBuilder.all())
+            let value = try await queryBuilder.all()
+            subject.send(value)
         } catch {
             subject.send(completion: .failure(error))
         }
