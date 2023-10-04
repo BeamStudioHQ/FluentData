@@ -1,7 +1,7 @@
 import FluentKit
 import Foundation
 
-/// A registry of `FluentDataContext`
+/// A registry for ``FluentDataContext`` instances
 public enum FluentDataContexts {
     private static var contexts: [ObjectIdentifier: FluentDataContext] = [:]
     private static var defaultId: ObjectIdentifier?
@@ -20,6 +20,7 @@ public enum FluentDataContexts {
         }
     }
     
+    /// Returns the default context, if any. Default context can be specified in ``FluentDataContext``'s initializer.
     public static var `default`: FluentDataContext? {
         guard let defaultId else { return nil }
         return contexts[defaultId]

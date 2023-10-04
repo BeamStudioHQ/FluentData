@@ -1,0 +1,43 @@
+name: Deploy DocC
+
+on:
+  push:
+    branches:
+      - "main"
+
+      
+permissions:
+  contents: write
+  
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+  
+jobs:
+  build_docs:
+    runs-on: macos-latest
+    steps:
+      - uses: swift-actions/setup-swift@v1
+        with:
+          swift-version: "5.9"
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Build DocC
+        run: |
+          swift package resolve;
+          swift package --allow-writing-to-directory docs \
+            generate-documentation --target FluentData \
+            --disable-indexing \
+            --transform-for-static-hosting \
+            --hosting-base-path FluentData \
+            --output-path docs
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          destination_dir: docs
