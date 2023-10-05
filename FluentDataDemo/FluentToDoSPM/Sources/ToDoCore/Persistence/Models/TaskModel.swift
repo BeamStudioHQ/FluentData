@@ -36,10 +36,68 @@ public final class TaskModel: Model {
 
     public init() { }
 
-    public init(project: ProjectModel, name: String, description: String) throws {
-        self.$project.id = try project.requireID()
+    public init(form: TaskModel.CreateFormData) throws {
+        let errors = form.validationErrors
+        guard errors.isEmpty else { throw FormError.invalidData(errors) }
 
-        self.name = name
-        self.description = description
+        self.$project.id = try form.project!.requireID()
+
+        self.name = form.name
+        self.description = form.description
+        self.done = false
+    }
+}
+
+extension TaskModel {
+    public struct CreateFormData: Validatable {
+        public init() {
+            self.description = ""
+            self.name = ""
+            self.project = nil
+        }
+
+        public var description: String
+        public var name: String
+        public var project: ProjectModel?
+
+        public var validationErrors: [Error] {
+            var errors: [Error] = []
+
+            if description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append(ValidationError.field(name: "description", reason: "You need to provide a description"))
+            }
+
+            if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append(ValidationError.field(name: "name", reason: "You need to provide a name"))
+            }
+
+            if project?._$idExists != true {
+                errors.append(ValidationError.field(name: "project", reason: "A task must be part of a project"))
+            }
+
+            return errors
+        }
+    }
+}
+
+extension TaskModel {
+    public struct EditFormData {
+        public init(from project: ProjectModel) { }
+    }
+}
+
+extension TaskModel {
+    public enum Filter {
+        case done(Bool)
+        case project(ProjectModel)
+    }
+}
+
+extension TaskModel {
+    public enum SortCriteria: Equatable {
+        case createdAt
+        case done
+        case name
+        case updatedAt
     }
 }

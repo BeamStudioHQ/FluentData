@@ -10,5 +10,6 @@ public extension AppState {
         var selectedTab: ContentView.SelectedTab = .projects
 
         var projects = ProjectsRouting()
+        var tasks = TasksRouting()
     }
 }

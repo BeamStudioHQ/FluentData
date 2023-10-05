@@ -14,9 +14,11 @@ public class DIContainer<AppState> {
 public extension DIContainer {
     struct Interactors {
         public let projects: ProjectsInteractor
+        public let tasks: TasksInteractor
 
-        public init(projects: ProjectsInteractor) {
+        public init(projects: ProjectsInteractor, tasks: TasksInteractor) {
             self.projects = projects
+            self.tasks = tasks
         }
     }
 }

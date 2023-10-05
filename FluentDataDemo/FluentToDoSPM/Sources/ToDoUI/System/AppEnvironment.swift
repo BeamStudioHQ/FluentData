@@ -15,7 +15,8 @@ extension AppEnvironment {
         )
 
         let interactors = DIContainer<AppState>.Interactors(
-            projects: ConcreteProjectsInteractor(repository: ConcreteProjectsRepository(fluentContext: fluentContext))
+            projects: ConcreteProjectsInteractor(repository: ConcreteProjectsRepository(fluentContext: fluentContext)),
+            tasks: ConcreteTasksInteractor(repository: ConcreteTasksRepository(fluentContext: fluentContext))
         )
 
         let container = DIContainer(appState: appState, interactors: interactors)

@@ -38,7 +38,9 @@ or you can add the following dependency to your `Package.swift`:
 
 ## Usage
 
-You can have a look at the documentation of FluentData [here](https://beam-studio.github.io/FluentData/documentation/fluentdata).
+To learn how to use FluentData, you can have a look at the documentation of FluentData [here](https://beam-studio.github.io/FluentData/documentation/fluentdata).
+
+There also is an example project to demonstrate how to use FluentData following the Clean architecture [as described by Alexey Naumov](https://nalexn.github.io/clean-architecture-swiftui/).
 
 ## License
 

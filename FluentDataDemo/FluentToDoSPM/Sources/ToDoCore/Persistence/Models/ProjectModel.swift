@@ -40,8 +40,31 @@ public final class ProjectModel: Model {
     }
 }
 
+extension ProjectModel: Hashable {
+    public static func == (lhs: ProjectModel, rhs: ProjectModel) -> Bool {
+        if lhs._$idExists, rhs._$idExists, lhs.id == rhs.id {
+            return true
+        }
+
+        return lhs.name == rhs.name &&
+            lhs.description == rhs.description
+    }
+
+    public var hashValue: Int {
+        var hasher = Hasher()
+        self.hash(into: &hasher)
+        return hasher.finalize()
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(description)
+    }
+}
+
 extension ProjectModel {
-    public struct CreateFormData { // WIP Validable protocol
+    public struct CreateFormData: Validatable {
         public init() {
             self.description = ""
             self.name = ""
@@ -51,8 +74,17 @@ extension ProjectModel {
         public var name: String
 
         public var validationErrors: [Error] {
-            // WIP
-            return []
+            var errors: [Error] = []
+
+            if description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append(ValidationError.field(name: "description", reason: "You need to provide a description"))
+            }
+
+            if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append(ValidationError.field(name: "name", reason: "You need to provide a name"))
+            }
+
+            return errors
         }
     }
 }
@@ -63,6 +95,9 @@ extension ProjectModel {
     }
 }
 
-enum FormError: Error {
-    case invalidData([Error])
+extension ProjectModel {
+    public enum SortCriteria: Equatable {
+        case createdAt
+        case name
+    }
 }

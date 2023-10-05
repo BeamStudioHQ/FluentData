@@ -9,35 +9,37 @@ struct ProjectCreationSheet: View {
 
     @State private var error: Error?
     @State private var formData = ProjectModel.CreateFormData()
+    private let placeholder = Placeholders.all.randomElement()!
 
     var body: some View {
         NavigationStack {
             List {
+                if let error {
+                    ErrorView(error: error)
+                }
+
                 nameSection
                 descriptionSection
 
-                Button("Create") { // WIP capsule button style
+                Button {
                     save()
+                } label: {
+                    Text("Create")
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(.blue)
-                .clipShape(Capsule())
+                .buttonStyle(CapsuleButtonStyle(background: .blue))
                 .disabled(!formData.validationErrors.isEmpty)
-                .safeAreaPadding()
+                .listRowInsets(.none)
+                .listRowBackground(Color.clear)
             }
-            .navigationTitle("Project creation")
+            .navigationTitle("New Project")
             .navigationBarTitleDisplayMode(.inline)
-            // .errorAlert(error: $error) // WIP
         }
     }
 
     private var descriptionSection: some View {
         Section {
-            TextField("exemple: List of chores to keep the house perfectly clean and safe", text: $formData.description)
+            TextField(placeholder.description, text: $formData.description)
                 .lineLimit(4, reservesSpace: true)
         } header: {
             Text(verbatim: "Description")
@@ -46,7 +48,7 @@ struct ProjectCreationSheet: View {
 
     private var nameSection: some View {
         Section {
-            TextField("exemple: Housekeeping", text: $formData.name)
+            TextField(placeholder.name, text: $formData.name)
         } header: {
             Text(verbatim: "Name")
         }
@@ -69,5 +71,27 @@ extension ProjectCreationSheet {
                 }
             }
         }
+    }
+}
+
+// MARK: - Placeholders
+
+extension ProjectCreationSheet {
+    enum Placeholders {
+        static let all: [ProjectModel.CreateFormData] = [groceries, housekeeping]
+
+        static let groceries: ProjectModel.CreateFormData = {
+            var form = ProjectModel.CreateFormData()
+            form.name = "Groceries"
+            form.description = "For the love of food"
+            return form
+        }()
+
+        static let housekeeping: ProjectModel.CreateFormData = {
+            var form = ProjectModel.CreateFormData()
+            form.name = "Housekeeping"
+            form.description = "Another one fights the dust"
+            return form
+        }()
     }
 }

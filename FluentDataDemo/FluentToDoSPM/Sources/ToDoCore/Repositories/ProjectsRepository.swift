@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import FluentData
 
 public protocol ProjectsRepository {
@@ -7,6 +8,8 @@ public protocol ProjectsRepository {
 
     // MARK: Side effects
     func create(project: ProjectModel.CreateFormData) async throws
+    func delete(projects: [ProjectModel]) async throws
+    func update(project: ProjectModel.EditFormData) async throws
 }
 
 public struct ConcreteProjectsRepository: ProjectsRepository {
@@ -17,10 +20,35 @@ public struct ConcreteProjectsRepository: ProjectsRepository {
     }
 
     public func create(project form: ProjectModel.CreateFormData) async throws {
-        try await ProjectModel(form: form).save(on: fluentContext.database)
+        try await fluentContext.database.transaction { transaction in
+            let project = try ProjectModel(form: form)
+            try await project.save(on: transaction)
+
+            var taskForm = TaskModel.CreateFormData()
+            taskForm.name = "Task 1"
+            taskForm.description = "Something to do"
+            taskForm.project = project
+            try await TaskModel(form: taskForm).save(on: transaction)
+
+            taskForm.name = "Task 2"
+            taskForm.description = "Something else to do"
+            try await TaskModel(form: taskForm).save(on: transaction)
+        }
+    }
+
+    public func delete(projects: [ProjectModel]) async throws {
+        try await fluentContext.database.transaction { transaction in
+            for project in projects {
+                try await project.delete(on: transaction)
+            }
+        }
     }
 
     public func projects(queryBuilder: @escaping (FluentKit.QueryBuilder<ProjectModel>) -> FluentKit.QueryBuilder<ProjectModel>) -> AnyPublisher<[ProjectModel], Error> {
         FluentQuery(context: fluentContext, queryBuilder: queryBuilder).publisher
+    }
+
+    public func update(project: ProjectModel.EditFormData) async throws {
+        fatalError("Not implemented")
     }
 }

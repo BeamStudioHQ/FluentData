@@ -6,6 +6,8 @@ struct TasksTab: View {
             TasksView()
                 .navigationTitle("Tasks")
         }
-        .tabItem { Label("Tasks", systemImage: "rectangle.stack.fill") }
+        .tabItem {
+            Label("Tasks", systemImage: "rectangle.stack.fill")
+        }
     }
 }

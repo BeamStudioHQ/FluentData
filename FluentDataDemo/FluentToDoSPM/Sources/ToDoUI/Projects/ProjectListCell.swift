@@ -5,13 +5,16 @@ struct ProjectListCell: View {
     var item: ProjectModel
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(verbatim: item.name)
-                .font(.title3.bold())
+        NavigationLink(value: item) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: item.name)
+                    .fontWeight(.bold)
 
-            Text(verbatim: item.description)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                Text(verbatim: item.description)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 4)
         }
     }
 }

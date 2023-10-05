@@ -1,4 +1,5 @@
 import FluentData
+import ToDoCore
 import SwiftUI
 
 struct EmptyProjectsCollectionView: View {
@@ -13,15 +14,10 @@ struct EmptyProjectsCollectionView: View {
             )
             .padding(8)
         }, actions: {
-            Button("Create a project") { // WIP capsule button style
+            Button("Create a project") {
                 appState.routing.projects.showCreationSheet = true
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white)
-            .fontWeight(.semibold)
-            .padding()
-            .background(.blue)
-            .clipShape(Capsule())
+            .buttonStyle(CapsuleButtonStyle(background: .blue))
         })
     }
 }
