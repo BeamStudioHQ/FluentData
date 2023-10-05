@@ -4,6 +4,136 @@ import FluentSQLiteDriver
 import NIOTransportServices
 import OSLog
 
+private protocol AnyQueryRegistration {
+    func shouldUpdateFor(schema: String, space: String?) -> Bool
+    func update() async
+}
+
+private protocol DatabaseStateTracker: AnyObject {
+    func onCreate(_ model: AnyModel, on db: Database) async
+    func onDelete(_ model: AnyModel, force: Bool, on db: Database) async
+    func onSoftDelete(_ model: AnyModel, on db: Database) async
+    func onRestore(_ model: AnyModel, on db: Database) async
+    func onUpdate(_ model: AnyModel, on db: Database) async
+}
+
+private struct ReadOnlyMiddleware: AnyModelMiddleware {
+    func handle(
+        _ event: FluentKit.ModelEvent,
+        _ model: FluentKit.AnyModel,
+        on db: FluentKit.Database,
+        chainingTo next: FluentKit.AnyModelResponder
+    ) -> NIOCore.EventLoopFuture<Void> {
+        return db.eventLoop.makeFailedFuture(ReadOnlyDatabaseError.invalidOperation)
+    }
+}
+
+private struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
+    private weak var tracker: (any DatabaseStateTracker)?
+
+    init(tracker: any DatabaseStateTracker) {
+        self.tracker = tracker
+    }
+
+    func handle(
+        _ event: FluentKit.ModelEvent,
+        _ model: FluentKit.AnyModel,
+        on db: FluentKit.Database,
+        chainingTo next: FluentKit.AnyModelResponder
+    ) -> NIOCore.EventLoopFuture<Void> {
+        let nextFuture = next.handle(event, model, on: db)
+
+        if let tracker {
+            nextFuture
+                .whenSuccess { _ in
+                    Task {
+                        switch event {
+                        case .create:
+                            await tracker.onCreate(model, on: db)
+
+                        case .delete(let force):
+                            await tracker.onDelete(model, force: force, on: db)
+
+                        case .restore:
+                            await tracker.onRestore(model, on: db)
+
+                        case .softDelete:
+                            await tracker.onSoftDelete(model, on: db)
+
+                        case .update:
+                            await tracker.onUpdate(model, on: db)
+                        }
+                    }
+                }
+        }
+
+        return nextFuture
+    }
+}
+
+private struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistration {
+    private let queryBuilder: QueryBuilder<Model>
+    private let subject: CurrentValueSubject<[Model], Error>
+
+    init(
+        queryBuilder: QueryBuilder<Model>,
+        subject: CurrentValueSubject<[Model], Error>
+    ) {
+        self.queryBuilder = queryBuilder
+        self.subject = subject
+    }
+
+    func shouldUpdateFor(schema: String, space: String?) -> Bool {
+        // If the queried table matches the given schema and space, an update is required
+        if queryBuilder.query.schema == schema, queryBuilder.query.space == space {
+            return true
+        }
+
+        // We also need to check if there is any eager loaders for a matching model
+        guard queryBuilder.eagerLoaders.isEmpty else {
+            // TODO(FD-8): Improve detection of eager loaded models
+            // As of now, we don't have access to the EagerLoader concrete classes of the Fluent module.
+            // Because of that, we don't know which model is eager loaded, thus limiting the way we can optimize this
+            return true
+        }
+
+        // If not, we check here if there is a join on a table matching the given schema and space
+        for join in queryBuilder.query.joins {
+            switch join {
+            case .join(let joinedSchema, _, _, _, _):
+                if joinedSchema == schema, self.queryBuilder.query.space == space {
+                    return true
+                }
+
+            case .extendedJoin(let joinedSchema, let joinedSpace, _, _, _, _):
+                if joinedSchema == schema, joinedSpace == space {
+                    return true
+                }
+
+            case .advancedJoin(let joinedSchema, let joinedSpace, _, _, _):
+                if joinedSchema == schema, joinedSpace == space {
+                    return true
+                }
+
+            case .custom:
+                return false
+            }
+        }
+
+        // If we don't find a match, it means the query doesn't need to be updated
+        return false
+    }
+
+    func update() async {
+        do {
+            let value = try await queryBuilder.all()
+            subject.send(value)
+        } catch {
+            subject.send(completion: .failure(error))
+        }
+    }
+}
+
 /// An isolated database context
 public class FluentDataContext {
     /// Access the Fluent's Database object
@@ -14,34 +144,38 @@ public class FluentDataContext {
     /// Planet(name: "Earth").create(on: context.database)
     /// ```
     public var database: any Database {
-        databases.database(.sqlite, logger: logger, on: eventLoopGroup.next())!
+        guard let db = databases.database(.sqlite, logger: logger, on: eventLoopGroup.next()) else {
+            fatalError("Unable to fetch database object")
+        }
+        return db
     }
-    
+
     private let databases: Databases
     private let eventLoopGroup: EventLoopGroup
     private let logger: Logger
     private var registeredQueries: [UUID: AnyQueryRegistration] = [:]
     private let threadPool: NIOThreadPool
-    
+
     /// Create and register a new database context
     /// - Parameters:
     ///   - contextKey: the key which uniquely identify this context
-    ///   - makeDefault: if `true`, register this context as the default one. If `nil`, registers this context as the default one only if there is no default context yet
+    ///   - makeDefault: if `true`, register this context as the default one. If `nil`, registers this context as the default one only if there is no default
+    ///     context yet
     public init<K: FluentDataContextKey>(contextKey: K.Type, middlewares: [AnyModelMiddleware] = [], makeDefault: Bool? = nil) {
         let eventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)
         let threadPool = NIOThreadPool(numberOfThreads: 1)
         threadPool.start()
 
-        let logger = Logger(label: DatabaseID.sqlite.string, factory: {
-            OSLogLogHandler(os.Logger(subsystem: "FluentData", category: $0), logLevel: contextKey.logQueries ? .debug : .info)
-        })
+        let logger = Logger(label: DatabaseID.sqlite.string) { category in
+            OSLogHandler(os.Logger(subsystem: "FluentData", category: category), logLevel: contextKey.logQueries ? .debug : .info)
+        }
 
         databases = Self.initDatabases(contextKey: contextKey, eventLoopGroup: eventLoopGroup, threadPool: threadPool, logger: logger)
 
         self.logger = logger
         self.eventLoopGroup = eventLoopGroup
         self.threadPool = threadPool
-        
+
         if case .bundle = contextKey.persistence {
             databases.middleware.use(ReadOnlyMiddleware(), on: .sqlite)
             middlewares.forEach { databases.middleware.use($0, on: .sqlite) }
@@ -49,12 +183,17 @@ public class FluentDataContext {
             middlewares.forEach { databases.middleware.use($0, on: .sqlite) }
             databases.middleware.use(QueryChangesTrackingMiddleware(tracker: self), on: .sqlite)
         }
-        
+
         // Register the context
         FluentDataContexts[contextKey, makeDefault] = self
     }
 
-    private static func initDatabases<K: FluentDataContextKey>(contextKey: K.Type, eventLoopGroup: EventLoopGroup, threadPool: NIOThreadPool, logger: Logger) -> Databases {
+    private static func initDatabases<K: FluentDataContextKey>(
+        contextKey: K.Type,
+        eventLoopGroup: EventLoopGroup,
+        threadPool: NIOThreadPool,
+        logger: Logger
+    ) -> Databases {
         guard contextKey.shouldMigrate else {
             let databases = Databases(threadPool: threadPool, on: eventLoopGroup)
             databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
@@ -63,8 +202,8 @@ public class FluentDataContext {
 
         do {
             return try createAndMigrateDatabases()
-        } catch let migrationError {
-            return tryRecoverMigrationError(migrationError)
+        } catch {
+            return tryRecoverMigrationError(error)
         }
 
         func createAndMigrateDatabases() throws -> Databases {
@@ -72,7 +211,13 @@ public class FluentDataContext {
             databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
 
             do {
-                try migrate(migrations: contextKey.migrations, filePath: contextKey.removableFilePath, databases: databases, eventLoopGroup: eventLoopGroup, logger: logger)
+                try migrate(
+                    migrations: contextKey.migrations,
+                    filePath: contextKey.removableFilePath,
+                    databases: databases,
+                    eventLoopGroup: eventLoopGroup,
+                    logger: logger
+                )
             } catch {
                 databases.shutdown()
                 throw error
@@ -97,8 +242,8 @@ public class FluentDataContext {
 
             do {
                 try FileManager.default.removeItem(at: filePath)
-            } catch let fileManagerError {
-                fatalError("Unable to start fresh: \(fileManagerError)\nMigrations failed with error: \(migrationError)")
+            } catch {
+                fatalError("Unable to start fresh: \(error)\nMigrations failed with error: \(migrationError)")
             }
         }
 
@@ -109,8 +254,10 @@ public class FluentDataContext {
                 do {
                     logger.notice("Unable to migrate, trying to start fresh")
                     return try createAndMigrateDatabases()
-                } catch let error {
-                    fatalError("Migrations failed with error (will start fresh and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)")
+                } catch {
+                    fatalError(
+                        "Migrations failed with error (will start fresh and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)"
+                    )
                 }
 
             case .abort:
@@ -126,8 +273,10 @@ public class FluentDataContext {
                 removeFile(migrationError: migrationError)
                 do {
                     return try createAndMigrateDatabases()
-                } catch let error {
-                    fatalError("Migrations failed with error (will backup and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)")
+                } catch {
+                    fatalError(
+                        "Migrations failed with error (will backup and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)"
+                    )
                 }
             }
         }
@@ -139,7 +288,7 @@ public class FluentDataContext {
 
     internal func register<Model: FluentKit.Model>(_ fluentQuery: FluentQuery<Model>) {
         let queryBuilder = fluentQuery.queryBuilder(Model.query(on: database))
-        
+
         let registration = QueryRegistration<Model>(queryBuilder: queryBuilder, subject: fluentQuery.subject)
         registeredQueries.updateValue(registration, forKey: fluentQuery.queryId)
         Task(priority: .background) {
@@ -150,165 +299,44 @@ public class FluentDataContext {
 
 extension FluentDataContext: DatabaseStateTracker {
     private func refreshAllQueriesFor(schema: String, space: String?) async {
-        for registration in registeredQueries.values {
-            if registration.shouldUpdateFor(schema: schema, space: space) {
-                await registration.update()
-            }
+        for registration in registeredQueries.values where registration.shouldUpdateFor(schema: schema, space: space) {
+            await registration.update()
         }
     }
-    
+
     func onCreate(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
         let modelType = type(of: model)
         await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
-    
+
     func onDelete(_ model: FluentKit.AnyModel, force: Bool, on db: FluentKit.Database) async {
         let modelType = type(of: model)
         await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
-    
+
     func onSoftDelete(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
         let modelType = type(of: model)
         await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
-    
+
     func onRestore(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
         let modelType = type(of: model)
         await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
-    
+
     func onUpdate(_ model: FluentKit.AnyModel, on db: FluentKit.Database) async {
         let modelType = type(of: model)
         await refreshAllQueriesFor(schema: modelType.schema, space: modelType.space)
     }
 }
 
-fileprivate protocol AnyQueryRegistration {
-    func shouldUpdateFor(schema: String, space: String?) -> Bool
-    func update() async
-}
-
-fileprivate protocol DatabaseStateTracker: AnyObject {
-    func onCreate(_ model: AnyModel, on db: Database) async
-    func onDelete(_ model: AnyModel, force: Bool, on db: Database) async
-    func onSoftDelete(_ model: AnyModel, on db: Database) async
-    func onRestore(_ model: AnyModel, on db: Database) async
-    func onUpdate(_ model: AnyModel, on db: Database) async
-}
-
-fileprivate struct ReadOnlyMiddleware: AnyModelMiddleware {
-    func handle(_ event: FluentKit.ModelEvent, _ model: FluentKit.AnyModel, on db: FluentKit.Database, chainingTo next: FluentKit.AnyModelResponder) -> NIOCore.EventLoopFuture<Void> {
-        return db.eventLoop.makeFailedFuture(ReadOnlyDatabaseError.invalidOperation)
-    }
-}
-
-fileprivate struct QueryChangesTrackingMiddleware: AnyModelMiddleware {
-    private weak var tracker: (any DatabaseStateTracker)?
-    
-    init(tracker: any DatabaseStateTracker) {
-        self.tracker = tracker
-    }
-    
-    func handle(_ event: FluentKit.ModelEvent, _ model: FluentKit.AnyModel, on db: FluentKit.Database, chainingTo next: FluentKit.AnyModelResponder) -> NIOCore.EventLoopFuture<Void> {
-        let nextFuture = next.handle(event, model, on: db)
-        
-        if let tracker {
-            nextFuture
-                .whenSuccess { result in
-                    Task {
-                        switch event {
-                        case .create:
-                            await tracker.onCreate(model, on: db)
-                        case .delete(let force):
-                            await tracker.onDelete(model, force: force, on: db)
-                        case .restore:
-                            await tracker.onRestore(model, on: db)
-                        case .softDelete:
-                            await tracker.onSoftDelete(model, on: db)
-                        case .update:
-                            await tracker.onUpdate(model, on: db)
-                        }
-                    }
-                }
-        }
-        
-        return nextFuture
-    }
-}
-
-fileprivate struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistration {
-    let queryBuilder: QueryBuilder<Model>
-    let subject: CurrentValueSubject<[Model], Error>
-
-    init(
-        queryBuilder: QueryBuilder<Model>,
-        subject: CurrentValueSubject<[Model], Error>
-    ) {
-        self.queryBuilder = queryBuilder
-        self.subject = subject
-    }
-    
-    func shouldUpdateFor(schema: String, space: String?) -> Bool {
-        // If the queried table matches the given schema and space, an update is required
-        if queryBuilder.query.schema == schema, queryBuilder.query.space == space {
-            return true
-        }
-        
-        // We also need to check if there is any eager loaders for a matching model
-        if queryBuilder.eagerLoaders.isEmpty == false {
-            // TODO(FD-8): Improve detection of eager loaded models
-            // As of now, we don't have access to the EagerLoader concrete classes of the Fluent module.
-            // Because of that, we don't know which model is eager loaded, thus limiting the way we can optimize this
-            return true
-        }
-        
-        // If not, we check here if there is a join on a table matching the given schema and space
-        for join in queryBuilder.query.joins {
-            switch join {
-            case .join(let joinedSchema, _, _, _, _):
-                if joinedSchema == schema, self.queryBuilder.query.space == space {
-                    return true
-                }
-                
-            case .extendedJoin(let joinedSchema, let joinedSpace, _, _, _, _):
-                if joinedSchema == schema, joinedSpace == space {
-                    return true
-                }
-                
-            case .advancedJoin(let joinedSchema, let joinedSpace, _, _, _):
-                if joinedSchema == schema, joinedSpace == space {
-                    return true
-                }
-                
-            case .custom:
-                return false
-            }
-        }
-        
-        // If we don't find a match, it means the query doesn't need to be updated
-        return false
-    }
-    
-    func update() async {
-        do {
-            let value = try await queryBuilder.all()
-            subject.send(value)
-        } catch {
-            subject.send(completion: .failure(error))
-        }
-    }
-}
-
 fileprivate extension FluentDataContextKey {
     static var databaseConfigurationFactory: DatabaseConfigurationFactory {
         switch Self.persistence {
-        case .memory:
-            return .sqlite(.memory)
-        case .file:
-            let filePath = Self.filePath!
-            return .sqlite(.file(filePath.absoluteString))
         case .bundle:
+            // swiftlint:disable force_unwrapping
             let filePath = Self.filePath!
+            // swiftlint:enable force_unwrapping
             let folder = FileManager.default.temporaryDirectory
             let tempPath = folder.appendingPathComponent("\(UUID().uuidString).sqlite")
             do {
@@ -317,42 +345,63 @@ fileprivate extension FluentDataContextKey {
             } catch {
                 fatalError("Unable to copy bundled database \(tempPath) from bundle \(filePath) to temporary directory.")
             }
+
+        case .file:
+            // swiftlint:disable force_unwrapping
+            let filePath = Self.filePath!
+            // swiftlint:enable force_unwrapping
+            return .sqlite(.file(filePath.absoluteString))
+
+        case .memory:
+            return .sqlite(.memory)
         }
     }
 
     static var filePath: URL? {
         switch Self.persistence {
-        case .memory:
-            return nil
-        case .file(let name):
-            let folder = try! FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            let urlSafePersistenceName = name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines))!
-            let filePath = folder.appendingPathComponent("\(urlSafePersistenceName).sqlite")
-            return filePath
         case .bundle(let bundle, let name):
             if let path = bundle.url(forResource: name, withExtension: "sqlite") {
                 return path
             } else {
                 fatalError("Database \(name).sqlite not found in \(bundle.bundlePath).")
             }
+
+        case .file(let name):
+            guard let folder = try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
+                fatalError("Unknown to store database `\(name)` (1)")
+            }
+
+            guard let urlSafePersistenceName = name.addingPercentEncoding(
+                withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
+            ) else {
+                fatalError("Unknown to store database `\(name)` (2)")
+            }
+
+            let filePath = folder.appendingPathComponent("\(urlSafePersistenceName).sqlite")
+            return filePath
+
+        case .memory:
+            return nil
         }
     }
 
     static var removableFilePath: URL? {
         switch Self.persistence {
+        case .bundle, .memory:
+            return nil
+
         case .file:
             return filePath
-        case .memory, .bundle:
-            return nil
         }
     }
 
     static var shouldMigrate: Bool {
         switch Self.persistence {
-        case .memory, .file:
-            return true
         case .bundle:
             return false
+
+        case .file, .memory:
+            return true
         }
     }
 }

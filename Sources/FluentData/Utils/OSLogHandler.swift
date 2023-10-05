@@ -1,11 +1,16 @@
 import Logging
 import OSLog
 
-struct OSLogLogHandler: LogHandler {
+struct OSLogHandler: LogHandler {
     private let logger: os.Logger
     public var logLevel: Logging.Logger.Level
     public var metadata: Logging.Logger.Metadata
-    
+
+    @inlinable public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
+        get { metadata[key] }
+        set { metadata[key] = newValue }
+    }
+
     public init(
         _ logger: os.Logger,
         logLevel: Logging.Logger.Level = .trace
@@ -14,12 +19,7 @@ struct OSLogLogHandler: LogHandler {
         self.metadata = [:]
         self.logger = logger
     }
-    
-    @inlinable public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
-        get { metadata[key] }
-        set { metadata[key] = newValue }
-    }
-    
+
     public func log(
         level: Logging.Logger.Level,
         message: Logging.Logger.Message,
@@ -30,7 +30,7 @@ struct OSLogLogHandler: LogHandler {
         line: UInt
     ) {
         if level < self.logLevel { return }
-        
+
         self.logger.log(
             level: level.asOSLogLevel,
             """

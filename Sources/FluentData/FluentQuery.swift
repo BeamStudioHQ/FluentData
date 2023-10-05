@@ -7,8 +7,11 @@ public class FluentQuery<Model: FluentKit.Model> {
     private let context: FluentDataContext
     internal let queryBuilder: (QueryBuilder<Model>) -> QueryBuilder<Model>
     internal let queryId: UUID
+
+    // swiftlint:disable private_subject
     internal let subject = CurrentValueSubject<[Model], Error>([])
-    
+    // swiftlint:enable private_subject
+
     /// Any subscriber to this publisher will receive new updates everytime FluentData determines the result has to be updated.
     public var publisher: AnyPublisher<[Model], Error> {
         subject
@@ -34,7 +37,7 @@ public class FluentQuery<Model: FluentKit.Model> {
         self.queryId = UUID()
         self.context.register(self)
     }
-    
+
     /// Create a query object to fetch entries from the specified database context key
     /// - Parameters:
     ///   - contextKey: the key which uniquely identify this context
@@ -45,7 +48,7 @@ public class FluentQuery<Model: FluentKit.Model> {
     ) {
         self.init(context: FluentDataContexts[contextKey], queryBuilder: queryBuilder)
     }
-    
+
     /// Create a query object to fetch entries from the default database context
     /// - Parameters:
     ///   - queryBuilder: optional, can be specified to customize the query, such as filters or the sort order
@@ -57,7 +60,7 @@ public class FluentQuery<Model: FluentKit.Model> {
         }
         self.init(context: context, queryBuilder: queryBuilder)
     }
-    
+
     deinit {
         self.context.deregister(self)
     }
