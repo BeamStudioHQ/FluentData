@@ -90,7 +90,7 @@ private struct QueryRegistration<Model: FluentKit.Model>: AnyQueryRegistration {
         }
 
         // We also need to check if there is any eager loaders for a matching model
-        if queryBuilder.eagerLoaders.isEmpty == false {
+        guard queryBuilder.eagerLoaders.isEmpty else {
             // TODO(FD-8): Improve detection of eager loaded models
             // As of now, we don't have access to the EagerLoader concrete classes of the Fluent module.
             // Because of that, we don't know which model is eager loaded, thus limiting the way we can optimize this
