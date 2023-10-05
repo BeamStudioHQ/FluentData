@@ -24,7 +24,7 @@ public struct ConcreteProjectsInteractor: ProjectsInteractor {
 
         loadable.wrappedValue.setIsLoading(cancelBag: cancelBag)
 
-        repository.projects { $0 }
+        repository.projects { $0.sort(\.$name) }
             .sinkToLoadable { loadable.wrappedValue = $0 }
             .store(in: cancelBag)
     }
