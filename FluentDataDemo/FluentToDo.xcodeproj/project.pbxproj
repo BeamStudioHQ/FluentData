@@ -1,0 +1,734 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E7886ED52ACE0F9000C92269 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E7886ED42ACE0F9000C92269 /* Assets.xcassets */; };
+		E7886ED92ACE0F9000C92269 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E7886ED82ACE0F9000C92269 /* Preview Assets.xcassets */; };
+		E7886F272ACE147300C92269 /* FluentToDoWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7886F262ACE147300C92269 /* FluentToDoWatchApp.swift */; };
+		E7886F2B2ACE147300C92269 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E7886F2A2ACE147300C92269 /* Assets.xcassets */; };
+		E7886F2E2ACE147300C92269 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E7886F2D2ACE147300C92269 /* Preview Assets.xcassets */; };
+		E7886F312ACE147300C92269 /* FluentToDo Companion Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E7886F242ACE147300C92269 /* FluentToDo Companion Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E7886F3F2ACE18F100C92269 /* FluentToDoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7886F3E2ACE18F100C92269 /* FluentToDoApp.swift */; };
+		E7886F452ACE19EA00C92269 /* ToDoUI in Frameworks */ = {isa = PBXBuildFile; productRef = E7886F442ACE19EA00C92269 /* ToDoUI */; };
+		E7886F472ACE19EF00C92269 /* ToDoCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7886F462ACE19EF00C92269 /* ToDoCore */; };
+		E7886F492ACE19F700C92269 /* ToDoCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7886F482ACE19F700C92269 /* ToDoCore */; };
+		E7886F4B2ACE19F700C92269 /* ToDoWatchUI in Frameworks */ = {isa = PBXBuildFile; productRef = E7886F4A2ACE19F700C92269 /* ToDoWatchUI */; };
+		E7886F532ACE1A0B00C92269 /* FluentToDoTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7886F522ACE1A0B00C92269 /* FluentToDoTVApp.swift */; };
+		E7886F572ACE1A0C00C92269 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E7886F562ACE1A0C00C92269 /* Assets.xcassets */; };
+		E7886F5A2ACE1A0C00C92269 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E7886F592ACE1A0C00C92269 /* Preview Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E7886F2F2ACE147300C92269 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E7886EC52ACE0F8F00C92269 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E7886F232ACE147300C92269;
+			remoteInfo = "FluentToDo Companion Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E7886F032ACE13D900C92269 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				E7886F312ACE147300C92269 /* FluentToDo Companion Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		E7886ECD2ACE0F8F00C92269 /* FluentToDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluentToDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7886ED42ACE0F9000C92269 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E7886ED62ACE0F9000C92269 /* FluentToDo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluentToDo.entitlements; sourceTree = "<group>"; };
+		E7886ED82ACE0F9000C92269 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		E7886F242ACE147300C92269 /* FluentToDo Companion Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FluentToDo Companion Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7886F262ACE147300C92269 /* FluentToDoWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluentToDoWatchApp.swift; sourceTree = "<group>"; };
+		E7886F2A2ACE147300C92269 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E7886F2D2ACE147300C92269 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		E7886F392ACE183100C92269 /* FluentToDoSPM */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FluentToDoSPM; sourceTree = "<group>"; };
+		E7886F3E2ACE18F100C92269 /* FluentToDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluentToDoApp.swift; sourceTree = "<group>"; };
+		E7886F502ACE1A0B00C92269 /* FluentToDoTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluentToDoTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7886F522ACE1A0B00C92269 /* FluentToDoTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluentToDoTVApp.swift; sourceTree = "<group>"; };
+		E7886F562ACE1A0C00C92269 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E7886F592ACE1A0C00C92269 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E7886ECA2ACE0F8F00C92269 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F452ACE19EA00C92269 /* ToDoUI in Frameworks */,
+				E7886F472ACE19EF00C92269 /* ToDoCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7886F212ACE147300C92269 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F4B2ACE19F700C92269 /* ToDoWatchUI in Frameworks */,
+				E7886F492ACE19F700C92269 /* ToDoCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7886F4D2ACE1A0B00C92269 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E7886EC42ACE0F8F00C92269 = {
+			isa = PBXGroup;
+			children = (
+				E7886F392ACE183100C92269 /* FluentToDoSPM */,
+				E7886ECF2ACE0F8F00C92269 /* FluentToDo */,
+				E7886F252ACE147300C92269 /* FluentToDo Companion Watch App */,
+				E7886F512ACE1A0B00C92269 /* FluentToDoTV */,
+				E7886ECE2ACE0F8F00C92269 /* Products */,
+				E7886EED2ACE13A400C92269 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		E7886ECE2ACE0F8F00C92269 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E7886ECD2ACE0F8F00C92269 /* FluentToDo.app */,
+				E7886F242ACE147300C92269 /* FluentToDo Companion Watch App.app */,
+				E7886F502ACE1A0B00C92269 /* FluentToDoTV.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E7886ECF2ACE0F8F00C92269 /* FluentToDo */ = {
+			isa = PBXGroup;
+			children = (
+				E7886F3E2ACE18F100C92269 /* FluentToDoApp.swift */,
+				E7886ED42ACE0F9000C92269 /* Assets.xcassets */,
+				E7886ED62ACE0F9000C92269 /* FluentToDo.entitlements */,
+				E7886ED72ACE0F9000C92269 /* Preview Content */,
+			);
+			path = FluentToDo;
+			sourceTree = "<group>";
+		};
+		E7886ED72ACE0F9000C92269 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				E7886ED82ACE0F9000C92269 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		E7886EED2ACE13A400C92269 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E7886F252ACE147300C92269 /* FluentToDo Companion Watch App */ = {
+			isa = PBXGroup;
+			children = (
+				E7886F262ACE147300C92269 /* FluentToDoWatchApp.swift */,
+				E7886F2A2ACE147300C92269 /* Assets.xcassets */,
+				E7886F2C2ACE147300C92269 /* Preview Content */,
+			);
+			path = "FluentToDo Companion Watch App";
+			sourceTree = "<group>";
+		};
+		E7886F2C2ACE147300C92269 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				E7886F2D2ACE147300C92269 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		E7886F512ACE1A0B00C92269 /* FluentToDoTV */ = {
+			isa = PBXGroup;
+			children = (
+				E7886F522ACE1A0B00C92269 /* FluentToDoTVApp.swift */,
+				E7886F562ACE1A0C00C92269 /* Assets.xcassets */,
+				E7886F582ACE1A0C00C92269 /* Preview Content */,
+			);
+			path = FluentToDoTV;
+			sourceTree = "<group>";
+		};
+		E7886F582ACE1A0C00C92269 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				E7886F592ACE1A0C00C92269 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E7886ECC2ACE0F8F00C92269 /* FluentToDo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7886EDC2ACE0F9000C92269 /* Build configuration list for PBXNativeTarget "FluentToDo" */;
+			buildPhases = (
+				E7886EC92ACE0F8F00C92269 /* Sources */,
+				E7886ECA2ACE0F8F00C92269 /* Frameworks */,
+				E7886ECB2ACE0F8F00C92269 /* Resources */,
+				E7886F032ACE13D900C92269 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E7886F302ACE147300C92269 /* PBXTargetDependency */,
+			);
+			name = FluentToDo;
+			packageProductDependencies = (
+				E7886F442ACE19EA00C92269 /* ToDoUI */,
+				E7886F462ACE19EF00C92269 /* ToDoCore */,
+			);
+			productName = FluentToDo;
+			productReference = E7886ECD2ACE0F8F00C92269 /* FluentToDo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E7886F232ACE147300C92269 /* FluentToDo Companion Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7886F322ACE147300C92269 /* Build configuration list for PBXNativeTarget "FluentToDo Companion Watch App" */;
+			buildPhases = (
+				E7886F202ACE147300C92269 /* Sources */,
+				E7886F212ACE147300C92269 /* Frameworks */,
+				E7886F222ACE147300C92269 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FluentToDo Companion Watch App";
+			packageProductDependencies = (
+				E7886F482ACE19F700C92269 /* ToDoCore */,
+				E7886F4A2ACE19F700C92269 /* ToDoWatchUI */,
+			);
+			productName = "FluentToDo Companion Watch App";
+			productReference = E7886F242ACE147300C92269 /* FluentToDo Companion Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E7886F4F2ACE1A0B00C92269 /* FluentToDoTV */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7886F5B2ACE1A0C00C92269 /* Build configuration list for PBXNativeTarget "FluentToDoTV" */;
+			buildPhases = (
+				E7886F4C2ACE1A0B00C92269 /* Sources */,
+				E7886F4D2ACE1A0B00C92269 /* Frameworks */,
+				E7886F4E2ACE1A0B00C92269 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FluentToDoTV;
+			productName = FluentToDoTV;
+			productReference = E7886F502ACE1A0B00C92269 /* FluentToDoTV.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E7886EC52ACE0F8F00C92269 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					E7886ECC2ACE0F8F00C92269 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					E7886F232ACE147300C92269 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					E7886F4F2ACE1A0B00C92269 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = E7886EC82ACE0F8F00C92269 /* Build configuration list for PBXProject "FluentToDo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E7886EC42ACE0F8F00C92269;
+			packageReferences = (
+			);
+			productRefGroup = E7886ECE2ACE0F8F00C92269 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E7886ECC2ACE0F8F00C92269 /* FluentToDo */,
+				E7886F232ACE147300C92269 /* FluentToDo Companion Watch App */,
+				E7886F4F2ACE1A0B00C92269 /* FluentToDoTV */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E7886ECB2ACE0F8F00C92269 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886ED92ACE0F9000C92269 /* Preview Assets.xcassets in Resources */,
+				E7886ED52ACE0F9000C92269 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7886F222ACE147300C92269 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F2E2ACE147300C92269 /* Preview Assets.xcassets in Resources */,
+				E7886F2B2ACE147300C92269 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7886F4E2ACE1A0B00C92269 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F5A2ACE1A0C00C92269 /* Preview Assets.xcassets in Resources */,
+				E7886F572ACE1A0C00C92269 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E7886EC92ACE0F8F00C92269 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F3F2ACE18F100C92269 /* FluentToDoApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7886F202ACE147300C92269 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F272ACE147300C92269 /* FluentToDoWatchApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7886F4C2ACE1A0B00C92269 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7886F532ACE1A0B00C92269 /* FluentToDoTVApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E7886F302ACE147300C92269 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E7886F232ACE147300C92269 /* FluentToDo Companion Watch App */;
+			targetProxy = E7886F2F2ACE147300C92269 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E7886EDA2ACE0F9000C92269 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E7886EDB2ACE0F9000C92269 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		E7886EDD2ACE0F9000C92269 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FluentToDo/FluentToDo.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FluentToDo/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.beamstud.FluentToDo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E7886EDE2ACE0F9000C92269 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FluentToDo/FluentToDo.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FluentToDo/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.beamstud.FluentToDo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E7886F332ACE147300C92269 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FluentToDo Companion Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FluentToDo Companion";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = io.beamstud.FluentToDo;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.beamstud.FluentToDo.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		E7886F342ACE147300C92269 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FluentToDo Companion Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FluentToDo Companion";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = io.beamstud.FluentToDo;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.beamstud.FluentToDo.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		E7886F5C2ACE1A0C00C92269 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FluentToDoTV/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.beamstud.FluentToDoTV;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+			};
+			name = Debug;
+		};
+		E7886F5D2ACE1A0C00C92269 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FluentToDoTV/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.beamstud.FluentToDoTV;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E7886EC82ACE0F8F00C92269 /* Build configuration list for PBXProject "FluentToDo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7886EDA2ACE0F9000C92269 /* Debug */,
+				E7886EDB2ACE0F9000C92269 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7886EDC2ACE0F9000C92269 /* Build configuration list for PBXNativeTarget "FluentToDo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7886EDD2ACE0F9000C92269 /* Debug */,
+				E7886EDE2ACE0F9000C92269 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7886F322ACE147300C92269 /* Build configuration list for PBXNativeTarget "FluentToDo Companion Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7886F332ACE147300C92269 /* Debug */,
+				E7886F342ACE147300C92269 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7886F5B2ACE1A0C00C92269 /* Build configuration list for PBXNativeTarget "FluentToDoTV" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7886F5C2ACE1A0C00C92269 /* Debug */,
+				E7886F5D2ACE1A0C00C92269 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E7886F442ACE19EA00C92269 /* ToDoUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ToDoUI;
+		};
+		E7886F462ACE19EF00C92269 /* ToDoCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ToDoCore;
+		};
+		E7886F482ACE19F700C92269 /* ToDoCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ToDoCore;
+		};
+		E7886F4A2ACE19F700C92269 /* ToDoWatchUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ToDoWatchUI;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E7886EC52ACE0F8F00C92269 /* Project object */;
+}
