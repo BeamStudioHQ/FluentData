@@ -20,20 +20,8 @@ public struct ConcreteProjectsRepository: ProjectsRepository {
     }
 
     public func create(project form: ProjectModel.CreateFormData) async throws {
-        try await fluentContext.database.transaction { transaction in
-            let project = try ProjectModel(form: form)
-            try await project.save(on: transaction)
-
-            var taskForm = TaskModel.CreateFormData()
-            taskForm.name = "Task 1"
-            taskForm.description = "Something to do"
-            taskForm.project = project
-            try await TaskModel(form: taskForm).save(on: transaction)
-
-            taskForm.name = "Task 2"
-            taskForm.description = "Something else to do"
-            try await TaskModel(form: taskForm).save(on: transaction)
-        }
+        let project = try ProjectModel(form: form)
+        try await project.save(on: fluentContext.database)
     }
 
     public func delete(projects: [ProjectModel]) async throws {

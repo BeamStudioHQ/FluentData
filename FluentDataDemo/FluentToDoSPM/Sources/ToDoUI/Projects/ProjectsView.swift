@@ -37,7 +37,7 @@ struct ProjectsView: View {
                             }
 
                             Button {
-                                appState.routing.tasks.showCreationSheet = true
+                                appState.routing.tasks.showCreationSheet = .default
                             } label: {
                                 Label("Task", systemImage: "rectangle.stack.badge.plus")
                             }

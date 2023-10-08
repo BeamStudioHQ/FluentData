@@ -41,13 +41,15 @@ extension ProjectDetailView {
                     Spacer()
 
                     Button {
-                        appState.routing.tasks.showCreationSheet = true
+                        appState.routing.tasks.showCreationSheet = .withProject(project)
                     } label: {
                         Label("Create task", systemImage: "plus")
+                            .textCase(nil)
                             .labelStyle(.iconOnly)
                     }
 
                     TasksSortingMenu(sortCriteria: $sortCriteria, sortDirection: $sortDirection)
+                        .textCase(nil)
                 }
             }
             .onChange(of: project, initial: false) { reload() }

@@ -63,10 +63,6 @@ extension TaskModel {
         public var validationErrors: [Error] {
             var errors: [Error] = []
 
-            if description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                errors.append(ValidationError.field(name: "description", reason: "You need to provide a description"))
-            }
-
             if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 errors.append(ValidationError.field(name: "name", reason: "You need to provide a name"))
             }

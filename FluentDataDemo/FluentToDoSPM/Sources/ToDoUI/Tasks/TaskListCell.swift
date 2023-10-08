@@ -35,9 +35,11 @@ struct TaskListCell: View {
                         .fontWeight(.bold)
                 }
 
-                Text(verbatim: item.description)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                if !item.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(verbatim: item.description)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .padding(.vertical, 2)

@@ -13,7 +13,8 @@ struct ContentView: View {
             TasksTab()
                 .tag(SelectedTab.tasks)
         }
-        .sheet(isPresented: $bindableAppState.routing.projects.showCreationSheet, content: { ProjectCreationSheet() })
+        .sheet(isPresented: $bindableAppState.routing.projects.showCreationSheet) { ProjectCreationSheet() }
+        .sheet(item: $bindableAppState.routing.tasks.showCreationSheet) { TaskCreationSheet($0) }
     }
 }
 
