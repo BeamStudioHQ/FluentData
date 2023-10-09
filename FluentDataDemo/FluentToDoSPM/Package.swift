@@ -4,23 +4,15 @@ import PackageDescription
 
 let package = Package(
     name: "FluentToDoSPM",
-    platforms: [.iOS(.v17), .macOS(.v11)],
+    platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(
             name: "ToDoCore",
             targets: ["ToDoCore"]
         ),
         .library(
-            name: "ToDoTVUI",
-            targets: ["ToDoTVUI"]
-        ),
-        .library(
             name: "ToDoUI",
             targets: ["ToDoUI"]
-        ),
-        .library(
-            name: "ToDoWatchUI",
-            targets: ["ToDoWatchUI"]
         ),
     ],
     dependencies: [
@@ -34,20 +26,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "ToDoTVUI",
-            dependencies: [
-                .product(name: "FluentData", package: "FluentData"),
-                "ToDoCore",
-            ]
-        ),
-        .target(
             name: "ToDoUI",
-            dependencies: [
-                "ToDoCore",
-            ]
-        ),
-        .target(
-            name: "ToDoWatchUI",
             dependencies: [
                 "ToDoCore",
             ]
