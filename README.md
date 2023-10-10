@@ -1,10 +1,14 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat-square)](https://raw.githubusercontent.com/Beam-Studio/FluentData/main/LICENSE)
-![Supported platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS-333333.svg?style=flat-square)
 [![Swift 5.9 supported](https://img.shields.io/badge/Swift-5.9-orange.svg?style=flat-square)](https://github.com/apple/swift)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)](https://swift.org/package-manager/)
 
+![Supported iOS version](https://img.shields.io/badge/iOS-14+-dc9656.svg?style=flat-square)
+![Supported macOS version](https://img.shields.io/badge/macOS-12+-a1b56c.svg?style=flat-square)
+![Supported watchOS version](https://img.shields.io/badge/watchOS-7+-86c1b9.svg?style=flat-square)
+![Supported tvOS version](https://img.shields.io/badge/tvOS-14+-7cafc2.svg?style=flat-square)
+
 # FluentData
-> a SwiftData alternative using the Fluent ORM from Vapor
+> an alternative to SwiftData, built with [Fluent](https://github.com/vapor/fluent)
 
 ## Installation
 
