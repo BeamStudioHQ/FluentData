@@ -161,7 +161,7 @@ public class FluentDataContext {
     ///   - contextKey: the key which uniquely identify this context
     ///   - makeDefault: if `true`, register this context as the default one. If `nil`, registers this context as the default one only if there is no default
     ///     context yet
-    public init<K: FluentDataContextKey>(contextKey: K.Type, middlewares: [AnyModelMiddleware] = [], makeDefault: Bool? = nil) {
+    public init<K: FluentDataContextKey>(contextKey: K.Type, middlewares: [AnyModelMiddleware] = [], makeDefault: Bool? = nil) throws {
         let eventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)
         let threadPool = NIOThreadPool(numberOfThreads: 1)
         threadPool.start()
@@ -170,7 +170,7 @@ public class FluentDataContext {
             OSLogHandler(os.Logger(subsystem: "FluentData", category: category), logLevel: contextKey.logQueries ? .debug : .info)
         }
 
-        databases = Self.initDatabases(contextKey: contextKey, eventLoopGroup: eventLoopGroup, threadPool: threadPool, logger: logger)
+        try databases = Self.initDatabases(contextKey: contextKey, eventLoopGroup: eventLoopGroup, threadPool: threadPool, logger: logger)
 
         self.logger = logger
         self.eventLoopGroup = eventLoopGroup
@@ -193,10 +193,10 @@ public class FluentDataContext {
         eventLoopGroup: EventLoopGroup,
         threadPool: NIOThreadPool,
         logger: Logger
-    ) -> Databases {
+    ) throws -> Databases {
         guard contextKey.shouldMigrate else {
             let databases = Databases(threadPool: threadPool, on: eventLoopGroup)
-            databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
+            try databases.use(K.databaseConfigurationFactory(), as: .sqlite, isDefault: true)
             return databases
         }
 
@@ -208,12 +208,12 @@ public class FluentDataContext {
 
         func createAndMigrateDatabases() throws -> Databases {
             let databases = Databases(threadPool: threadPool, on: eventLoopGroup)
-            databases.use(K.databaseConfigurationFactory, as: .sqlite, isDefault: true)
+            try databases.use(K.databaseConfigurationFactory(), as: .sqlite, isDefault: true)
 
             do {
                 try migrate(
                     migrations: contextKey.migrations,
-                    filePath: contextKey.removableFilePath,
+                    filePath: try contextKey.removableFilePath(),
                     databases: databases,
                     eventLoopGroup: eventLoopGroup,
                     logger: logger
@@ -236,11 +236,10 @@ public class FluentDataContext {
         }
 
         func removeFile(migrationError: Error) {
-            guard let filePath = contextKey.removableFilePath else {
-                fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
-            }
-
             do {
+                guard let filePath = try contextKey.removableFilePath() else {
+                    fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
+                }
                 try FileManager.default.removeItem(at: filePath)
             } catch {
                 fatalError("Unable to start fresh: \(error)\nMigrations failed with error: \(migrationError)")
@@ -264,7 +263,7 @@ public class FluentDataContext {
                 fatalError("Migrations failed with error: \(migrationError)")
 
             case .backupAndStartFresh(let backupHandler):
-                guard let filePath = contextKey.removableFilePath else {
+                guard let filePath = try? contextKey.removableFilePath() else {
                     fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
                 }
                 logger.notice("Unable to migrate, running backup handler and trying to start fresh")
@@ -331,53 +330,119 @@ extension FluentDataContext: DatabaseStateTracker {
 }
 
 fileprivate extension FluentDataContextKey {
-    static var databaseConfigurationFactory: DatabaseConfigurationFactory {
+    static var shouldMigrate: Bool {
         switch Self.persistence {
         case .bundle:
-            // swiftlint:disable force_unwrapping
-            let filePath = Self.filePath!
-            // swiftlint:enable force_unwrapping
+            return false
+
+        case .file, .iCloud, .memory:
+            return true
+        }
+    }
+
+    static func databaseConfigurationFactory() throws -> DatabaseConfigurationFactory {
+        switch Self.persistence {
+        case .bundle:
+            let filePath = try Self.filePathUnsafe()
             let folder = FileManager.default.temporaryDirectory
             let tempPath = folder.appendingPathComponent("\(UUID().uuidString).sqlite")
             do {
                 try FileManager.default.copyItem(at: filePath, to: tempPath)
-                return .sqlite(.file(tempPath.absoluteString))
+                return .sqlite(.file(tempPath.path))
             } catch {
-                fatalError("Unable to copy bundled database \(tempPath) from bundle \(filePath) to temporary directory.")
+                throw FluentDataContextError.unableToOpenDatabase
             }
 
         case .file:
-            // swiftlint:disable force_unwrapping
-            let filePath = Self.filePath!
-            // swiftlint:enable force_unwrapping
-            return .sqlite(.file(filePath.absoluteString))
+            let filePath = try Self.filePathUnsafe()
+            return .sqlite(.file(filePath.path))
+
+        case .iCloud:
+            func fallbackToLocalContainer() throws -> DatabaseConfigurationFactory {
+                let localPath = localFilePath.deletingLastPathComponent()
+
+                do {
+                    try FileManager.default.createDirectory(at: localPath, withIntermediateDirectories: true)
+                } catch {
+                    throw FluentDataContextError.unableToOpenDatabase
+                }
+
+                return .sqlite(.file(localFilePath.path))
+            }
+
+            let localFilePath = try self.localFallbackFilePathUnsafe()
+
+            if FileManager.default.ubiquityIdentityToken != nil {
+                let iCloudFilePath = try Self.filePathUnsafe()
+
+                let localFileExists = FileManager.default.fileExists(atPath: localFilePath.path)
+                let iCloudFileExists = FileManager.default.fileExists(atPath: iCloudFilePath.path)
+
+                // Two strategies:
+                // 1. If there is an iCloud file, we load it.
+                // 2. Otherwise we move the local file to iCloud and load it.
+                // TODO(FD-14): custom merging strategies
+                switch (localFileExists, iCloudFileExists) {
+                case (true, false):
+                    do {
+                        try FileManager.default.setUbiquitous(true, itemAt: localFilePath, destinationURL: iCloudFilePath)
+                        return .sqlite(.file(iCloudFilePath.path))
+                    } catch {
+                        return try fallbackToLocalContainer()
+                    }
+
+                default:
+                    return .sqlite(.file(iCloudFilePath.path))
+                }
+            } else {
+                return try fallbackToLocalContainer()
+            }
 
         case .memory:
             return .sqlite(.memory)
         }
     }
 
-    static var filePath: URL? {
+    static func filePath() throws -> URL? {
         switch Self.persistence {
         case .bundle(let bundle, let name):
             if let path = bundle.url(forResource: name, withExtension: "sqlite") {
                 return path
             } else {
-                fatalError("Database \(name).sqlite not found in \(bundle.bundlePath).")
+                throw FluentDataContextError.bundledDatabaseNotFound
             }
 
         case .file(let name):
-            guard let folder = try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
-                fatalError("Unknown to store database `\(name)` (1)")
+            guard let applicationSupportDirectory = try? FileManager.default.url(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            ) else {
+                throw FluentDataContextError.unknownPathToDatabaseFile
             }
 
             guard let urlSafePersistenceName = name.addingPercentEncoding(
                 withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
             ) else {
-                fatalError("Unknown to store database `\(name)` (2)")
+                throw FluentDataContextError.invalidDatabaseName
             }
 
-            let filePath = folder.appendingPathComponent("\(urlSafePersistenceName).sqlite")
+            let filePath = applicationSupportDirectory.appendingPathComponent("\(urlSafePersistenceName).sqlite")
+            return filePath
+
+        case .iCloud(let container, let name):
+            guard let iCloudFolder = FileManager.default.url(forUbiquityContainerIdentifier: container) else {
+                return try Self.localFallbackFilePathUnsafe()
+            }
+
+            guard let urlSafePersistenceName = name.addingPercentEncoding(
+                withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
+            ) else {
+                throw FluentDataContextError.invalidDatabaseName
+            }
+
+            let filePath = iCloudFolder.appendingPathComponent("\(urlSafePersistenceName).sqlite")
             return filePath
 
         case .memory:
@@ -385,23 +450,48 @@ fileprivate extension FluentDataContextKey {
         }
     }
 
-    static var removableFilePath: URL? {
+    static func filePathUnsafe() throws -> URL {
+        guard let path = try filePath() else {
+            fatalError("filePathUnsafe called for an unsupported persistence type")
+        }
+        return path
+    }
+
+    static func localFallbackFilePathUnsafe() throws -> URL {
+        switch Self.persistence {
+        case .iCloud(let container, let name):
+            guard let applicationSupportDirectory = try? FileManager.default.url(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            ) else {
+                throw FluentDataContextError.unknownPathToDatabaseFile
+            }
+
+            let iCloudLocalDirectory = applicationSupportDirectory.appendingPathComponent("iCloudLocal").appendingPathComponent(container)
+
+            guard let urlSafePersistenceName = name.addingPercentEncoding(
+                withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
+            ) else {
+                throw FluentDataContextError.invalidDatabaseName
+            }
+
+            let filePath = iCloudLocalDirectory.appendingPathComponent("\(urlSafePersistenceName).sqlite")
+            return filePath
+
+        default:
+            fatalError("filePathUnsafe called for an unsupported persistence type")
+        }
+    }
+
+    static func removableFilePath() throws -> URL? {
         switch Self.persistence {
         case .bundle, .memory:
             return nil
 
-        case .file:
-            return filePath
-        }
-    }
-
-    static var shouldMigrate: Bool {
-        switch Self.persistence {
-        case .bundle:
-            return false
-
-        case .file, .memory:
-            return true
+        case .file, .iCloud:
+            return try filePath()
         }
     }
 }

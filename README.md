@@ -10,9 +10,22 @@
 # FluentData
 > an alternative to SwiftData, built with [Fluent](https://github.com/vapor/fluent)
 
+## Features
+
+- Multiple storage options:
+    - Memory: database starts fresh everytime, no data persist across app launches
+    - File: database is stored locally on device
+    - iCloud: database is synced via the iCloud settings of the device (works only on iOS and macOS)
+    - Bundle: database is loaded from a file in the bundle, it will be loaded in read-only mode
+- Migrations: so your data model can painlessly evolve with your application 
+- Query result updates with Combine: update your views automatically when database gets updated
+- Middlewares: execute code when data is inserted, updated and/or deleted
+- Compatible with Alexey Naumov's vision of [Clean Architecture for SwiftUI](https://nalexn.github.io/clean-architecture-swiftui/).
+
 ## Installation
 
-To install FluentData you can follow the [tutorial published by Apple](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) using the URL for the FluentData repo with the current version:
+To install FluentData you can follow the [tutorial published by Apple](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app)
+using the URL for the FluentData repo with the current version:
 
 1. In Xcode, select “File” → “Add Packages...”
 1. Enter https://github.com/Beam-Studio/FluentData.git
@@ -22,6 +35,10 @@ or you can add the following dependency to your `Package.swift`:
 ```swift
 .package(url: "https://github.com/Beam-Studio/FluentData.git", from: "main")
 ```
+
+## Usage
+
+You can have a look at the documentation of FluentData [here](https://beam-studio.github.io/FluentData/documentation/fluentdata).
 
 ## License
 
