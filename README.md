@@ -2,10 +2,10 @@
 [![Swift 5.9 supported](https://img.shields.io/badge/Swift-5.9-orange.svg?style=flat-square)](https://github.com/apple/swift)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)](https://swift.org/package-manager/)
 
-![Supported iOS version](https://img.shields.io/badge/iOS-14+-dc9656.svg?style=flat-square)
-![Supported macOS version](https://img.shields.io/badge/macOS-12+-a1b56c.svg?style=flat-square)
-![Supported watchOS version](https://img.shields.io/badge/watchOS-7+-86c1b9.svg?style=flat-square)
-![Supported tvOS version](https://img.shields.io/badge/tvOS-14+-7cafc2.svg?style=flat-square)
+![Supports iOS 14+](https://img.shields.io/badge/iOS-14+-dc9656.svg?style=flat-square)
+![Supports macOS 12+](https://img.shields.io/badge/macOS-12+-a1b56c.svg?style=flat-square)
+![Supports watchOS 7+](https://img.shields.io/badge/watchOS-7+-86c1b9.svg?style=flat-square)
+![Supports tvOS 14+](https://img.shields.io/badge/tvOS-14+-7cafc2.svg?style=flat-square)
 
 # FluentData
 > an alternative to SwiftData, built with [Fluent](https://github.com/vapor/fluent)
