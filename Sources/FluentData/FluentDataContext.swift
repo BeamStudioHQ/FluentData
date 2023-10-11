@@ -4,6 +4,8 @@ import FluentSQLiteDriver
 import NIOTransportServices
 import OSLog
 
+private let kICloudLocalFolderName = "iCloudLocal"
+
 private protocol AnyQueryRegistration {
     func shouldUpdateFor(schema: String, space: String?) -> Bool
     func update() async
@@ -145,6 +147,7 @@ public class FluentDataContext {
     /// ```
     public var database: any Database {
         guard let db = databases.database(.sqlite, logger: logger, on: eventLoopGroup.next()) else {
+            // TODO(FD-15): Prefer exceptions and nullables to fatalErrors
             fatalError("Unable to fetch database object")
         }
         return db
@@ -238,10 +241,12 @@ public class FluentDataContext {
         func removeFile(migrationError: Error) {
             do {
                 guard let filePath = try contextKey.removableFilePath() else {
+                    // TODO(FD-15): Prefer exceptions and nullables to fatalErrors (we could add a `.throws` failing policy)
                     fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
                 }
                 try FileManager.default.removeItem(at: filePath)
             } catch {
+                // TODO(FD-15): Prefer exceptions and nullables to fatalErrors (we could add a `.throws` failing policy)
                 fatalError("Unable to start fresh: \(error)\nMigrations failed with error: \(migrationError)")
             }
         }
@@ -254,6 +259,7 @@ public class FluentDataContext {
                     logger.notice("Unable to migrate, trying to start fresh")
                     return try createAndMigrateDatabases()
                 } catch {
+                    // TODO(FD-15): Prefer exceptions and nullables to fatalErrors (we could add a `.throws` failing policy)
                     fatalError(
                         "Migrations failed with error (will start fresh and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)"
                     )
@@ -262,8 +268,11 @@ public class FluentDataContext {
             case .abort:
                 fatalError("Migrations failed with error: \(migrationError)")
 
+            // TODO(FD-15): Prefer exceptions and nullables to fatalErrors (we could add a `.throws` failing policy)
+
             case .backupAndStartFresh(let backupHandler):
                 guard let filePath = try? contextKey.removableFilePath() else {
+                    // TODO(FD-15): Prefer exceptions and nullables to fatalErrors (we could add a `.throws` failing policy)
                     fatalError("Failure policy is incompatible with specified persistance.\nMigrations failed with error: \(migrationError)")
                 }
                 logger.notice("Unable to migrate, running backup handler and trying to start fresh")
@@ -273,6 +282,7 @@ public class FluentDataContext {
                 do {
                     return try createAndMigrateDatabases()
                 } catch {
+                    // TODO(FD-15): Prefer exceptions and nullables to fatalErrors (we could add a `.throws` failing policy)
                     fatalError(
                         "Migrations failed with error (will backup and retry): \(migrationError)\nMigrations failed again with error (aborting): \(error)"
                     )
@@ -329,7 +339,7 @@ extension FluentDataContext: DatabaseStateTracker {
     }
 }
 
-fileprivate extension FluentDataContextKey {
+private extension FluentDataContextKey {
     static var shouldMigrate: Bool {
         switch Self.persistence {
         case .bundle:
@@ -372,30 +382,30 @@ fileprivate extension FluentDataContextKey {
 
             let localFilePath = try self.localFallbackFilePathUnsafe()
 
-            if FileManager.default.ubiquityIdentityToken != nil {
-                let iCloudFilePath = try Self.filePathUnsafe()
-
-                let localFileExists = FileManager.default.fileExists(atPath: localFilePath.path)
-                let iCloudFileExists = FileManager.default.fileExists(atPath: iCloudFilePath.path)
-
-                // Two strategies:
-                // 1. If there is an iCloud file, we load it.
-                // 2. Otherwise we move the local file to iCloud and load it.
-                // TODO(FD-14): custom merging strategies
-                switch (localFileExists, iCloudFileExists) {
-                case (true, false):
-                    do {
-                        try FileManager.default.setUbiquitous(true, itemAt: localFilePath, destinationURL: iCloudFilePath)
-                        return .sqlite(.file(iCloudFilePath.path))
-                    } catch {
-                        return try fallbackToLocalContainer()
-                    }
-
-                default:
-                    return .sqlite(.file(iCloudFilePath.path))
-                }
-            } else {
+            guard FileManager.default.ubiquityIdentityToken != nil else {
                 return try fallbackToLocalContainer()
+            }
+
+            let iCloudFilePath = try Self.filePathUnsafe()
+
+            let localFileExists = FileManager.default.fileExists(atPath: localFilePath.path)
+            let iCloudFileExists = FileManager.default.fileExists(atPath: iCloudFilePath.path)
+
+            // Two strategies:
+            // 1. If there is an iCloud file, we load it.
+            // 2. Otherwise we move the local file to iCloud and load it.
+            // TODO(FD-14): custom merging strategies
+            switch (localFileExists, iCloudFileExists) {
+            case (true, false):
+                do {
+                    try FileManager.default.setUbiquitous(true, itemAt: localFilePath, destinationURL: iCloudFilePath)
+                    return .sqlite(.file(iCloudFilePath.path))
+                } catch {
+                    return try fallbackToLocalContainer()
+                }
+
+            default:
+                return .sqlite(.file(iCloudFilePath.path))
             }
 
         case .memory:
@@ -422,9 +432,7 @@ fileprivate extension FluentDataContextKey {
                 throw FluentDataContextError.unknownPathToDatabaseFile
             }
 
-            guard let urlSafePersistenceName = name.addingPercentEncoding(
-                withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
-            ) else {
+            guard let urlSafePersistenceName = name.urlSafePersistenceName else {
                 throw FluentDataContextError.invalidDatabaseName
             }
 
@@ -436,9 +444,7 @@ fileprivate extension FluentDataContextKey {
                 return try Self.localFallbackFilePathUnsafe()
             }
 
-            guard let urlSafePersistenceName = name.addingPercentEncoding(
-                withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
-            ) else {
+            guard let urlSafePersistenceName = name.urlSafePersistenceName else {
                 throw FluentDataContextError.invalidDatabaseName
             }
 
@@ -469,11 +475,9 @@ fileprivate extension FluentDataContextKey {
                 throw FluentDataContextError.unknownPathToDatabaseFile
             }
 
-            let iCloudLocalDirectory = applicationSupportDirectory.appendingPathComponent("iCloudLocal").appendingPathComponent(container)
+            let iCloudLocalDirectory = applicationSupportDirectory.appendingPathComponent(kICloudLocalFolderName).appendingPathComponent(container)
 
-            guard let urlSafePersistenceName = name.addingPercentEncoding(
-                withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
-            ) else {
+            guard let urlSafePersistenceName = name.urlSafePersistenceName else {
                 throw FluentDataContextError.invalidDatabaseName
             }
 
@@ -493,5 +497,13 @@ fileprivate extension FluentDataContextKey {
         case .file, .iCloud:
             return try filePath()
         }
+    }
+}
+
+private extension String {
+    var urlSafePersistenceName: String? {
+        self.addingPercentEncoding(
+            withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet.symbols).subtracting(CharacterSet.newlines)
+        )
     }
 }
