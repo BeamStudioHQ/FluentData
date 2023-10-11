@@ -6,11 +6,6 @@ struct OSLogHandler: LogHandler {
     public var logLevel: Logging.Logger.Level
     public var metadata: Logging.Logger.Metadata
 
-    @inlinable public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
-        get { metadata[key] }
-        set { metadata[key] = newValue }
-    }
-
     public init(
         _ logger: os.Logger,
         logLevel: Logging.Logger.Level = .trace
@@ -38,6 +33,11 @@ struct OSLogHandler: LogHandler {
             \(function) at \(file):\(line)
             """
         )
+    }
+
+    @inlinable public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
+        get { metadata[key] }
+        set { metadata[key] = newValue }
     }
 }
 

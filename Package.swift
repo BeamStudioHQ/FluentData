@@ -5,7 +5,7 @@ import CompilerPluginSupport
 
 let package = Package(
     name: "FluentData",
-    platforms: [.iOS(.v17), .macOS(.v11)],
+    platforms: [.iOS(.v14), .macOS(.v12), .watchOS(.v7), .tvOS(.v14)],
     products: [
         .library(
             name: "FluentData",
