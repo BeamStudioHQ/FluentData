@@ -9,7 +9,7 @@ extension AppEnvironment {
     static func bootstrap() async throws -> AppEnvironment {
         let appState = AppState()
 
-        let fluentContext = FluentDataContext(
+        let fluentContext = try! FluentDataContext(
             contextKey: ToDoPersistenceContextKey.self,
             makeDefault: false
         )
